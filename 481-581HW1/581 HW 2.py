@@ -56,7 +56,7 @@ print(A1 [1,2])
 
 plt.figure(figsize=(10, 6))
 for i in range(n_max):
-    plt.plot(xspan, eigenfunctions[:,i], label=f'phi_{i+1}')  # Plot setiap fungsi eigen
+    plt.plot(xspan, eigenfunctions[:,i], label=f'phi_{i+1}')
 
 plt.legend()
 plt.title('Fungsi Eigen Osilator Harmonik Kuantum')
