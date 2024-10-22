@@ -27,7 +27,7 @@ for n in range(n_max):
 
         phi_guess = y[-1, 1] + np.sqrt(L**2 - epsilon_guess) * y[-1, 0]
         if abs(phi_guess) < tol:
-            print(f"Nilai eigen untuk n {n}: {epsilon_guess}")
+            print(f"eigenvalues for n {n}: {epsilon_guess}")
             eigenvalue.append(epsilon_guess)
             break
 
