@@ -5,7 +5,7 @@ import imageio.v2 as imageio
 from scipy.fftpack import fft, fft2, ifft2
 from scipy.integrate import solve_ivp
 from scipy.linalg import solve, solve_triangular, lu
-from scipy.sparse.linalg import bicgstab
+from scipy.sparse.linalg import bicgstab, gmres
 from scipy.sparse import spdiags
 
 #============================PART A=========================================
@@ -24,7 +24,7 @@ y2 = np.linspace(-Ly/2, Ly/2, ny + 1)
 y = y2[:ny]
 X, Y = np.meshgrid(x, y)
 
-w1 = (np.exp((-(X+0)**2 - ((Y+0)**2) / 20))).flatten()
+w1 = (np.exp(-X**2 - (Y**2 / 20))).flatten()
 # w2 = -1 * (np.exp((-(X-0)**2 - ((Y+3)**2) / 20))).flatten()
 # w = w1+w2
 
@@ -105,7 +105,7 @@ print(fft_time)
 # Plot the solution at each time step
 for j, t in enumerate(tspan):
     wtc = A1[:, j].reshape((ny, nx)) 
-    wtc2 = A1w2[:, j].reshape((ny, nx)) 
+    wtc2 = A1[:, j].reshape((ny, nx)) 
     plt.subplot(3, 3, j + 1)
     plt.pcolor(x, y, wtc+wtc2, shading='auto', cmap='gnuplot')
     # plt.pcolor(x, y, wtc2, shading='auto', cmap='gnuplot')
@@ -237,6 +237,7 @@ print("Time to run BiCGSTAB : ", bicgstab_t)
 #===========================================================================
 
 # GMRES Solver
+
 w_gmres = (np.exp(-X**2 - (Y**2)/20)).flatten()
 
 def spc_rhs_gmres(t, w_gmres, nu, A, B, C):
