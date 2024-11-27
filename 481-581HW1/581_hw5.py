@@ -115,37 +115,6 @@ for j, t in enumerate(tspan):
 plt.tight_layout()
 plt.show()
 
-# +++++++++++++++  Set up The Movie .gif
-# gif_frames = []
-
-# Plot the solution at each time step and save frames
-# for j, t in enumerate(tspan):
-#     wtc = A1[:, j].reshape((ny, nx)) 
-#     # wtc2 = A1w2[:, j].reshape((ny, nx)) 
-    
-#     # Create plot
-#     fig, ax = plt.subplots()
-#     c = ax.pcolor(x, y, wtc, shading='nearest', cmap='gnuplot')
-#     fig.colorbar(c)
-#     ax.set_title(f'Time: {t}')
-    
-#     # Save the current plot as an image frame
-#     plt.savefig('frame.png')  # Save frame to file
-#     plt.close(fig)
-    
-#     # Append the frame to gif_frames list
-#     gif_frames.append(imageio.imread('frame.png'))
-
-# # Create the .gif
-# imageio.mimsave('animation.gif', gif_frames, duration=0.5)  # 0.5 seconds between frames
-
-# # Optional: Remove the frame image after gif creation
-# import os
-# os.remove('frame.png')
-
-# print("GIF created successfully!")
-
-
 #================================================================================
 
 # Direct Solver
@@ -219,8 +188,12 @@ plt.show()
 
 w_bicgstab = (np.exp(-X**2 - (Y**2)/20)).flatten()
 
+residuals_bic = []
+def bic_callback(residual_norm):
+    residuals_bic.append(residual_norm)
+
 def spc_rhs_bicgstab(t, w_bicgstab, nu, A, B, C):
-    psi, _ = bicgstab(A, w_bicgstab, rtol=1e-4)
+    psi, _ = bicgstab(A, w_bicgstab, rtol=1e-4, callback = bic_callback)
     return nu * np.dot(A, w_bicgstab) - np.dot(B, psi) * np.dot(C, w_bicgstab) + np.dot(C, psi) * np.dot(B, w_bicgstab)
 
 start_time = time.time()
@@ -233,15 +206,31 @@ bicgstab_t = end_time - start_time
 print(A4)
 print("Time to run BiCGSTAB : ", bicgstab_t)
 
+# +++++++++++++++ Plot the solution at each time step
+for j, t in enumerate(tspan):
+    wtc = A4[:, j].reshape((ny, nx))
+    wtc = np.nan_to_num(wtc, nan=0.0, posinf=np.max(wtc[np.isfinite(wtc)]), neginf=np.min(wtc[np.isfinite(wtc)]))
+    plt.subplot(3, 3, j + 1)
+    levels = np.linspace(np.min(wtc), np.max(wtc), 200)  # Pastikan level sesuai dengan data
+    plt.contourf(x, y, wtc, levels=levels, cmap='gist_earth')
+    plt.title(f'Time: {t:.2f}')
+    plt.colorbar()
+
+# Tata letak plot
+plt.tight_layout()
+plt.show()
 
 #===========================================================================
 
 # GMRES Solver
-
 w_gmres = (np.exp(-X**2 - (Y**2)/20)).flatten()
 
+residuals_gm = []
+def gm_callback(residual_norm):
+    residuals_gm.append(residual_norm)
+
 def spc_rhs_gmres(t, w_gmres, nu, A, B, C):
-    psi, _ = gmres(A, w_gmres, rtol=1e-6)
+    psi, _ = gmres(A, w_gmres, rtol=1e-6, callback = gm_callback)
     return nu * np.dot(A, w_gmres) - np.dot(B, psi) * np.dot(C, w_gmres) + np.dot(C, psi) * np.dot(B, w_gmres)
 
 start_time = time.time()
@@ -253,6 +242,31 @@ gmres_t = end_time - start_time
 
 print(A5)
 print("Time to run GMRES : ", gmres_t)
+
+# +++++++++++++++ Plot the solution at each time step
+for j, t in enumerate(tspan):
+    wtc = A5[:, j].reshape((ny, nx))
+    wtc = np.nan_to_num(wtc, nan=0.0, posinf=np.max(wtc[np.isfinite(wtc)]), neginf=np.min(wtc[np.isfinite(wtc)]))
+    plt.subplot(3, 3, j + 1)
+    levels = np.linspace(np.min(wtc), np.max(wtc), 200)  # Pastikan level sesuai dengan data
+    plt.contourf(x, y, wtc, levels=levels, cmap='cubehelix')
+    plt.title(f'Time: {t:.2f}')
+    plt.colorbar()
+
+# Tata letak plot
+plt.tight_layout()
+plt.show()
+
+#====================================================================================
+
+#times = [fft_time, Ab_time, LU_time, bicgstab_t, gmres_t]
+print("FFT solve time:", fft_time)
+print("A/b solve time:", Ab_time)
+print("LU solve time:", LU_time)
+print("BICGSTAB solve time:", bicgstab_t)
+print("GMRES solve time:", gmres_t)
+print("BICGSTAB iteration count:", len(residuals_bic))
+print("GMRES iteration count:", len(residuals_gm))
 
 
 
